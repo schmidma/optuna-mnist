@@ -1,0 +1,27 @@
+services:
+  optuna-mysql:
+    image: docker.io/mysql:8.0
+    ports:
+      - 13306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: start123
+      MYSQL_DATABASE: optuna
+    healthcheck:
+      test: mysqladmin ping --silent || exit 1
+    volumes:
+      - mysql-data:/var/lib/mysql
+  optuna-dashboard:
+    image: ghcr.io/optuna/optuna-dashboard:v0.10.0b1
+    entrypoint: 
+      - /bin/sh
+      - -c
+      - |
+        python -c 'import optuna; optuna.storages.RDBStorage("mysql+pymysql://root:start123@optuna-mysql:3306/optuna", skip_table_creation=False)'
+        optuna-dashboard --port 8080 --host 0.0.0.0 --server gunicorn mysql+pymysql://root:start123@optuna-mysql:3306/optuna
+    ports:
+      - 18080:8080
+    depends_on:
+      optuna-mysql:
+        condition: service_healthy
+volumes:
+  mysql-data:

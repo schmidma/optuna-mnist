@@ -1,0 +1,6 @@
+lightning
+tensorboard
+torchvision
+optuna
+pymysql
+
